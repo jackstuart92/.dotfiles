@@ -46,6 +46,7 @@ BREW_PACKAGES=(
     "stow"
     "wget"
     "visual-studio-code"
+    "neovim"
 )
 
 APT_PACKAGES=(
@@ -76,6 +77,7 @@ APT_PACKAGES=(
     "libxmlsec1-dev"
     "libffi-dev"
     "liblzma-dev"
+    "neovim"
 )
 
 

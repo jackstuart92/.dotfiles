@@ -100,6 +100,8 @@ BREW_PACKAGES=(
     "visual-studio-code"
     "neovim"
     "zsh"
+    "oh-my-posh"
+    "font-firacode-nerd-font"
 )
 
 APT_PACKAGES=(
@@ -145,6 +147,8 @@ install_macos() {
     brew update
     echo "Installing packages..."
     brew install "${BREW_PACKAGES[@]}"
+    brew tap homebrew/cask-fonts
+    brew install --cask "${BREW_CASKS[@]}"
 
     # Install Oh My Zsh non-interactively
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -217,6 +221,22 @@ install_ubuntu() {
         # We need zsh installed first, which is in the APT_PACKAGES list
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
+
+    # Install Oh My Posh for Linux
+    if ! command -v oh-my-posh &> /dev/null; then
+        echo "Installing Oh My Posh..."
+        curl -s https://ohmyposh.dev/install.sh | sudo bash -s
+    fi
+
+    # Nerd Font instruction for WSL/Ubuntu
+    echo ""
+    echo "--- ⚠️  Action Required: Install Nerd Font ---"
+    echo "For the new theme to render correctly, please install a Nerd Font on your host machine."
+    echo "1. Download a font like FiraCode Nerd Font from: https://www.nerdfonts.com/font-downloads"
+    echo "2. Unzip and install the font files on your Windows or macOS host."
+    echo "3. Set your terminal's font to 'FiraCode NF' or your chosen Nerd Font."
+    echo "------------------------------------------------"
+    echo ""
 
     # Set Zsh as the default shell
     local zsh_path

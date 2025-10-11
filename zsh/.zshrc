@@ -99,3 +99,8 @@ fi
 # Go
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
+
+# Oh My Posh - A theme engine for any shell.
+# https://ohmyposh.dev
+export OMP_THEME="$HOME/.dotfiles/themes/jandedobbeleer.omp.json"
+eval "$(oh-my-posh init zsh --config "$OMP_THEME")"

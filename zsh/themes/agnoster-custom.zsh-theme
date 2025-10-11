@@ -51,7 +51,7 @@ esac
 
 # Current working directory
 : ${AGNOSTER_DIR_FG:=${CURRENT_FG}}
-: ${AGNOSTER_DIR_BG:=166}
+: ${AGNOSTER_DIR_BG:=130}
 
 # user@host
 : ${AGNOSTER_CONTEXT_FG:=${CURRENT_DEFAULT_FG}}

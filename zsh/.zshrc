@@ -105,3 +105,10 @@ export PATH=$PATH:$GOPATH/bin
 
 # Add standard local bin directory for manually installed tools
 export PATH=$PATH:/usr/local/bin
+
+# --- MCP Agent Aliases ---
+# Note: These aliases assume your dotfiles are located at ~/.dotfiles
+alias mcp-start='(cd ~/.dotfiles/mcp && docker-compose up -d)'
+alias mcp-stop='(cd ~/.dotfiles/mcp && docker-compose down)'
+alias mcp-logs='(cd ~/.dotfiles/mcp && docker-compose logs -f)'
+alias mcp-rebuild='(cd ~/.dotfiles/mcp && docker-compose build)'

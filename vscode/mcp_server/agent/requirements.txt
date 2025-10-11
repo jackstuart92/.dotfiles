@@ -1,0 +1,13 @@
+# LangChain and supporting libraries
+langchain
+langchain-openai
+
+# Jira API access
+jira
+
+# For loading environment variables
+python-dotenv
+
+# For creating the web server
+fastapi
+uvicorn[standard]

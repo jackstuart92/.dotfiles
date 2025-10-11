@@ -386,6 +386,156 @@ configure_ide_terminals() {
     done
 }
 
+# --- Install MCP Agent ---
+# Sets up the Docker environment for the MCP agent.
+install_mcp_agent() {
+    echo "Configuring MCP Agent with Docker..."
+    local mcp_dir="vscode/mcp_server"
+
+    if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
+        echo "⚠️ Docker and docker-compose are required. Please install them and re-run."
+        echo "   (Podman with podman-docker should also work)."
+        return
+    fi
+
+    # Build the Docker container
+    echo "Building the MCP Agent Docker image (this may take a few minutes)..."
+    if (cd "$mcp_dir" && docker-compose build); then
+        echo "✅ MCP Agent Docker image built successfully."
+    else
+        echo "❌ Failed to build the MCP Agent Docker image. Please check for errors above."
+        return
+    fi
+
+    # Setup environment file
+    local agent_dir="$mcp_dir/agent"
+    local env_file="$agent_dir/.env"
+    local template_file="$agent_dir/.env.template"
+
+    if [ ! -f "$env_file" ]; then
+        echo "Creating .env file for MCP Agent..."
+        # Create the template file content here
+        cat <<EOF > "$template_file"
+# --- General Configuration ---
+# Set the authentication type for Jira. Use 'cloud' or 'server'.
+JIRA_AUTH_TYPE="cloud"
+
+# --- Jira Cloud Configuration (if JIRA_AUTH_TYPE is 'cloud') ---
+JIRA_SERVER="https://your-domain.atlassian.net"
+JIRA_EMAIL="your-email@example.com"
+JIRA_TOKEN="your_jira_api_token"
+
+# --- Jira Server Configuration (if JIRA_AUTH_TYPE is 'server') ---
+# JIRA_SERVER="https://your-jira-server.example.com"
+# JIRA_USERNAME="your_jira_username"
+# JIRA_PAT="your_personal_access_token" # Or use your password, though PAT is recommended
+EOF
+        cp "$template_file" "$env_file"
+        echo "✅ Created '$env_file'. Please edit this file to add your API keys."
+        echo "   You will need to configure your Jira auth type."
+    fi
+
+    echo "MCP Agent setup complete."
+    echo "To start the agent, run: cd vscode/mcp_server && docker-compose up -d"
+    echo "To stop the agent, run:  cd vscode/mcp_server && docker-compose down"
+}
+
+# --- Link IDE Extension ---
+# Creates a symbolic link for the MCP extension into the VSCode or Cursor extensions folder.
+link_ide_extension() {
+    echo "Configuring IDE Extensions..."
+
+    read -rp "Which extension do you want to link? (mcp/persona/none): " ext_choice
+    local extension_source_dir
+    case "$ext_choice" in
+        mcp)
+            extension_source_dir="$(pwd)/vscode/extensions/mcp_ui"
+            ;;
+        persona)
+            extension_source_dir="$(pwd)/vscode/extensions/persona_switcher"
+            ;;
+        *)
+            echo "Skipping extension linking."
+            return
+            ;;
+    esac
+
+    if [ ! -d "$extension_source_dir" ]; then
+        echo "⚠️ Extension source directory not found at $extension_source_dir. Skipping."
+        return
+    fi
+
+    # Check for jq
+    if ! command -v jq &> /dev/null; then
+        echo "⚠️ 'jq' is not installed, which is required to read extension info. Skipping."
+        return
+    fi
+
+    local publisher name version
+    publisher=$(jq -r '.publisher // "local"' "$extension_source_dir/package.json")
+    name=$(jq -r '.name' "$extension_source_dir/package.json")
+    version=$(jq -r '.version' "$extension_source_dir/package.json")
+    local extension_full_name="${publisher}.${name}-${version}"
+
+    read -rp "Link '$name' extension for which IDE? (vscode/cursor/both/none): " ide_choice
+
+    local target_dirs=()
+    case "$ide_choice" in
+        vscode)
+            # Check for WSL environment and use the appropriate extensions directory
+            if [ -n "$WSL_DISTRO_NAME" ]; then
+                target_dirs+=("$HOME/.vscode-server/extensions")
+            else
+                target_dirs+=("$HOME/.vscode/extensions")
+            fi
+            ;;
+        cursor)
+            # Assuming Cursor may have a similar server path in WSL, but defaulting to standard for now
+             if [ -n "$WSL_DISTRO_NAME" ]; then
+                target_dirs+=("$HOME/.cursor-server/extensions")
+            else
+                target_dirs+=("$HOME/.cursor/extensions")
+            fi
+            ;;
+        both)
+            if [ -n "$WSL_DISTRO_NAME" ]; then
+                target_dirs+=("$HOME/.vscode-server/extensions")
+                target_dirs+=("$HOME/.cursor-server/extensions")
+            else
+                target_dirs+=("$HOME/.vscode/extensions")
+                target_dirs+=("$HOME/.cursor/extensions")
+            fi
+            ;;
+        *)
+            echo "Skipping extension linking."
+            return
+            ;;
+    esac
+
+    for target_dir in "${target_dirs[@]}"; do
+        if [ ! -d "$target_dir" ]; then
+            echo "Creating extensions directory: $target_dir"
+            mkdir -p "$target_dir"
+        fi
+
+        local link_path="$target_dir/$extension_full_name"
+
+        # Remove existing link/directory to prevent errors
+        if [ -L "$link_path" ] || [ -d "$link_path" ]; then
+            echo "Removing existing extension link at $link_path"
+            rm -rf "$link_path"
+        fi
+
+        echo "Creating symbolic link for $name at $link_path"
+        if ln -s "$extension_source_dir" "$link_path"; then
+            echo "✅ Successfully linked '$name' extension."
+        else
+            echo "❌ Failed to create symbolic link for '$name'."
+        fi
+    done
+
+    echo "Please restart your editor to see the changes."
+}
 
 # Main execution
 main() {
@@ -405,6 +555,16 @@ main() {
 
     setup_windows_path
     configure_ide_terminals
+    install_mcp_agent
+    link_ide_extension
+
+    # Install VS Code extensions
+    if [ -f "vscode/install_extensions.sh" ]; then
+        echo "Running VS Code extension installer..."
+        # shellcheck source=vscode/install_extensions.sh
+        source "vscode/install_extensions.sh"
+        install_extensions
+    fi
 }
 
 main "$@"

@@ -1,0 +1,23 @@
+{
+    "name": "mcp-jira-connector",
+    "displayName": "MCP Jira Connector",
+    "description": "Fetches Jira ticket context for the active chat.",
+    "version": "1.0.0",
+    "publisher": "private",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "activationEvents": [
+        "onCommand:mcp.getJiraTicket"
+    ],
+    "main": "./extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "mcp.getJiraTicket",
+                "title": "MCP: Get Jira Ticket Context",
+                "category": "MCP"
+            }
+        ]
+    }
+}

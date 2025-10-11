@@ -1,0 +1,25 @@
+{
+  "name": "persona-switcher",
+  "displayName": "Persona Switcher",
+  "description": "Quickly switch between different chat personas/system prompts.",
+  "version": "0.0.1",
+  "publisher": "jacks",
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "persona.selectPersona",
+        "title": "Select a Chat Persona"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.83.0"
+  }
+}

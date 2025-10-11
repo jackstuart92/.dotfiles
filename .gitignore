@@ -8,3 +8,24 @@ shell/.env
 # Temporary files
 *.bak
 *.swp
+
+# Node.js
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+pip-wheel-metadata/
+.pytest_cache/
+
+# Generated specs
+mcp/specs/
+
+# MCP Agent virtual environment and secrets
+mcp/agent/venv/
+mcp/agent/.env

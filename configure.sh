@@ -34,6 +34,63 @@ EOL
     echo
 }
 
+# Configure SSH for GitHub
+configure_ssh_github() {
+    echo "--- GitHub SSH Configuration ---"
+    
+    # Determine GitHub host
+    local github_host
+    read -rp "Are you configuring for GitHub.com or a GitHub Enterprise server? (com/enterprise): " choice
+    if [[ "$choice" =~ ^[Ee] ]]; then
+        read -rp "Enter your GitHub Enterprise hostname (e.g., github.my-company.com): " github_host
+    else
+        github_host="github.com"
+    fi
+    echo "Configuring for host: $github_host"
+    echo
+
+    if ! command_exists ssh-keygen; then
+        echo "⚠️ 'ssh-keygen' command not found. Please install OpenSSH and try again."
+        return 1
+    fi
+
+    # Check for an existing SSH key
+    local ssh_key_path="$HOME/.ssh/id_ed25519"
+    if [ -f "$ssh_key_path" ]; then
+        echo "✅ Found existing SSH key: $ssh_key_path"
+    else
+        echo "No ED25519 SSH key found. Let's generate a new one."
+        read -rp "Enter the email address associated with your GitHub account: " github_email
+        if [ -z "$github_email" ]; then
+            echo "⚠️ Email cannot be empty. Skipping SSH key generation."
+            return 1
+        fi
+        
+        # Generate a new SSH key without a passphrase for automation
+        mkdir -p "$HOME/.ssh"
+        ssh-keygen -t ed25519 -C "$github_email" -f "$ssh_key_path" -N ""
+        echo "✅ New SSH key generated at $ssh_key_path"
+    fi
+
+    echo
+    echo "Please add the following public key to your GitHub account."
+    echo "1. Go to https://$github_host/settings/keys"
+    echo "2. Click 'New SSH key'"
+    echo "3. Paste the key below into the 'Key' field and give it a title."
+    echo "--- SSH Public Key ---"
+    cat "${ssh_key_path}.pub"
+    echo "----------------------"
+    echo
+    echo "🔒 If your organization requires SSO, you must authorize this key."
+    echo "After adding the key, find it in your list of SSH keys and click 'Configure SSO' or 'Authorize'."
+    echo
+    
+    read -rp "Press [Enter] once you have added and (if necessary) authorized the key."
+
+    echo "Testing the SSH connection to $github_host..."
+    ssh -o StrictHostKeyChecking=no -T "git@$github_host"
+}
+
 # Configure NPM for a private registry
 configure_npm() {
     echo "--- NPM Private Registry ---"
@@ -142,6 +199,9 @@ main() {
 
     read -rp "Configure Git? (y/n): " choice
     [[ "$choice" =~ ^[Yy]$ ]] && configure_git
+
+    read -rp "Configure SSH for GitHub? (y/n): " choice
+    [[ "$choice" =~ ^[Yy]$ ]] && configure_ssh_github
 
     read -rp "Configure NPM for a private registry? (y/n): " choice
     [[ "$choice" =~ ^[Yy]$ ]] && configure_npm

@@ -53,16 +53,29 @@ APT_PACKAGES=(
     "golang-go" # go
     "gradle"
     "jq"
-    "yq"
     "maven"
-    "nvm" # this will need special handling, nvm is usually installed via a script
+    # "nvm" # Removed, will be installed via script
     "openssl"
     "podman"
     "python3"
-    "pyenv" # might need a custom install
+    # "pyenv" # Removed, will be installed via script
     "stow"
     "wget"
     "build-essential" # for go-task and others
+    "libssl-dev"
+    "zlib1g-dev"
+    "libbz2-dev"
+    "libreadline-dev"
+    "libsqlite3-dev"
+    "curl"
+    "llvm"
+    "libncursesw5-dev"
+    "xz-utils"
+    "tk-dev"
+    "libxml2-dev"
+    "libxmlsec1-dev"
+    "libffi-dev"
+    "liblzma-dev"
 )
 
 
@@ -96,6 +109,12 @@ install_ubuntu() {
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
     fi
     
+    # Special handling for pyenv
+    if ! command -v pyenv &> /dev/null; then
+        echo "Installing pyenv..."
+        curl https://pyenv.run | bash
+    fi
+
     echo "Ubuntu setup complete."
 }
 

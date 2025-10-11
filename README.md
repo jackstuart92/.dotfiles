@@ -45,7 +45,12 @@ These steps should be run from your terminal on macOS or inside your Ubuntu envi
     ```
 
 3.  **Set up your local configurations:**
-    Run the interactive configuration script. This will guide you through setting up Git, private registries for NPM, Pip, Docker, and Go.
+    Run the interactive configuration script. This will guide you through setting up:
+    *   Your Git username and email.
+    *   An SSH key for either GitHub.com or a GitHub Enterprise server.
+    *   Instructions for authorizing your SSH key with SSO-enabled organizations.
+    *   Private registries for NPM, Pip, Docker, and Go.
+    
     ```bash
     ./configure.sh
     ```

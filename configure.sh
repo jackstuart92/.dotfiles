@@ -203,17 +203,21 @@ main() {
     read -rp "Configure SSH for GitHub? (y/n): " choice
     [[ "$choice" =~ ^[Yy]$ ]] && configure_ssh_github
 
-    read -rp "Configure NPM for a private registry? (y/n): " choice
-    [[ "$choice" =~ ^[Yy]$ ]] && configure_npm
-    
-    read -rp "Configure Pip for a private registry? (y/n): " choice
-    [[ "$choice" =~ ^[Yy]$ ]] && configure_pip
+    read -rp "Do you want to configure private registries/repositories? (y/n): " choice
+    if [[ "$choice" =~ ^[Yy]$ ]]; then
+        echo
+        read -rp "Configure NPM for a private registry? (y/n): " npm_choice
+        [[ "$npm_choice" =~ ^[Yy]$ ]] && configure_npm
+        
+        read -rp "Configure Pip for a private registry? (y/n): " pip_choice
+        [[ "$pip_choice" =~ ^[Yy]$ ]] && configure_pip
 
-    read -rp "Configure Docker for a private registry? (y/n): " choice
-    [[ "$choice" =~ ^[Yy]$ ]] && configure_docker
-    
-    read -rp "Configure Go for private modules? (y/n): " choice
-    [[ "$choice" =~ ^[Yy]$ ]] && configure_go
+        read -rp "Configure Docker for a private registry? (y/n): " docker_choice
+        [[ "$docker_choice" =~ ^[Yy]$ ]] && configure_docker
+        
+        read -rp "Configure Go for private modules? (y/n): " go_choice
+        [[ "$go_choice" =~ ^[Yy]$ ]] && configure_go
+    fi
 
     echo "🎉 Configuration complete!"
     echo "Remember to run './stow.sh' to apply your new configurations."

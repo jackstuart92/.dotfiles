@@ -1,0 +1,7 @@
+{
+    "auths": {
+        "https://my-private-docker-registry.com": {
+            "auth": "BASE64_ENCODED_USERNAME_PASSWORD"
+        }
+    }
+}

@@ -1,0 +1,14 @@
+[user]
+    name = 
+    email = 
+[core]
+    editor = nvim
+    excludesfile = ~/.gitignore_global
+[init]
+    defaultBranch = main
+[github]
+    user = 
+[includeIf "gitdir:~/work/"]
+    path = ~/.gitconfig.work
+[include]
+    path = ~/.gitconfig.local

@@ -1,0 +1,4 @@
+- [ ] A script to install all the dependencies for `wsl` and `macos`
+- [ ] A script that can be configured to periodically pull from `origin`
+- [ ] Dotfiles for `git`, `zsh`, `npm`, `pip`, `docker`, and `go`
+- [ ] A script to `symlink` the `dotfiles` into the correct directories

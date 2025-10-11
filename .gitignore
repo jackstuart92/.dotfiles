@@ -1,0 +1,10 @@
+# Local and user-specific configurations
+git/.gitconfig.local
+shell/.env
+
+# macOS files
+.DS_Store
+
+# Temporary files
+*.bak
+*.swp

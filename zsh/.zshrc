@@ -4,11 +4,14 @@
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
+# Point to your custom themes directory
+export ZSH_CUSTOM="$HOME/.dotfiles/zsh"
+
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME="agnoster-custom"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -102,8 +105,3 @@ export PATH=$PATH:$GOPATH/bin
 
 # Add standard local bin directory for manually installed tools
 export PATH=$PATH:/usr/local/bin
-
-# Oh My Posh - A theme engine for any shell.
-# https://ohmyposh.dev
-export OMP_THEME="$HOME/.dotfiles/themes/jandedobbeleer.omp.json"
-eval "$(oh-my-posh init zsh --config "$OMP_THEME")"

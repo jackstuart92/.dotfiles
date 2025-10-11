@@ -100,7 +100,6 @@ BREW_PACKAGES=(
     "visual-studio-code"
     "neovim"
     "zsh"
-    "oh-my-posh"
     "font-firacode-nerd-font"
 )
 
@@ -222,24 +221,10 @@ install_ubuntu() {
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
 
-    # Install Oh My Posh for Linux
-    if ! command -v oh-my-posh &> /dev/null; then
-        echo "Installing Oh My Posh..."
-        sudo wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -O /usr/local/bin/oh-my-posh
-        sudo chmod +x /usr/local/bin/oh-my-posh
-        
-        # Verify installation
-        if ! command -v oh-my-posh &> /dev/null; then
-            echo "⚠️  Oh My Posh installation failed. Please check for errors above."
-        else
-            echo "✅ Oh My Posh installed successfully."
-        fi
-    fi
-
     # Nerd Font instruction for WSL/Ubuntu
     echo ""
     echo "--- ⚠️  Action Required: Install Nerd Font ---"
-    echo "For the new theme to render correctly, please install a Nerd Font on your host machine."
+    echo "For Oh My Zsh themes with icons (like 'agnoster') to render correctly, please install a Nerd Font on your host machine."
     echo "1. Download a font like FiraCode Nerd Font from: https://www.nerdfonts.com/font-downloads"
     echo "2. Unzip and install the font files on your Windows or macOS host."
     echo "3. Set your terminal's font to 'FiraCode NF' or your chosen Nerd Font."

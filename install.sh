@@ -120,20 +120,70 @@ install_ubuntu() {
     echo "Ubuntu setup complete."
 }
 
+# --- Setup Windows PATH in WSL ---
+# Adds common Windows applications to the WSL PATH for easy access.
+setup_windows_path() {
+    if ! grep -q -i "wsl" /proc/version; then
+        echo "Not running in WSL, skipping Windows PATH setup."
+        return
+    fi
+
+    echo "Running in WSL, configuring PATH for Windows applications..."
+
+    local win_user_profile
+    win_user_profile=$(powershell.exe -Command 'Write-Output $env:USERPROFILE' | tr -d '\r')
+
+    if [ -z "$win_user_profile" ]; then
+        echo "Could not determine Windows user profile. Aborting PATH setup."
+        return
+    fi
+
+    local wsl_user_profile
+    wsl_user_profile=$(wslpath "$win_user_profile")
+
+    local path_additions=""
+    local vscode_path="$wsl_user_profile/AppData/Local/Programs/Microsoft VS Code/bin"
+    local cursor_path="$wsl_user_profile/AppData/Local/Programs/Cursor/resources/app/bin"
+    local chrome_path="/mnt/c/Program Files/Google/Chrome/Application"
+    local edge_path="/mnt/c/Program Files (x86)/Microsoft/Edge/Application"
+
+    if [ -d "$vscode_path" ]; then
+        path_additions="$path_additions:$vscode_path"
+        echo "Found VS Code."
+    fi
+
+    if [ -d "$cursor_path" ]; then
+        path_additions="$path_additions:$cursor_path"
+        echo "Found Cursor."
+    fi
+
+    if [ -d "$chrome_path" ]; then
+        path_additions="$path_additions:$chrome_path"
+        echo "Found Google Chrome."
+    fi
+
+    if [ -d "$edge_path" ]; then
+        path_additions="$path_additions:$edge_path"
+        echo "Found Microsoft Edge."
+    fi
+
+    if [ -n "$path_additions" ]; then
+        local profile_script="/etc/profile.d/99-windows-apps.sh"
+        echo "Adding applications to PATH. You may be prompted for your password."
+        echo "# This file is auto-generated. Adds common Windows apps to the WSL PATH." | sudo tee "$profile_script" > /dev/null
+        # Note: We use a raw string literal with single quotes to prevent shell expansion here.
+        echo 'export PATH="$PATH'"$path_additions" | sudo tee -a "$profile_script" > /dev/null
+        echo "✅ Windows application paths configured. Please restart your shell for changes to take effect."
+    else
+        echo "No Windows applications found in default locations."
+    fi
+}
+
+
+# Main execution
 main() {
-    OS=$(detect_os)
-    case "$OS" in
-        macos)
-            install_macos
-            ;;
-        ubuntu)
-            install_ubuntu
-            ;;
-        *)
-            echo "Unsupported operating system: $OS"
-            exit 1
-            ;;
-    esac
+    detect_os
+    setup_windows_path
 }
 
 main "$@"

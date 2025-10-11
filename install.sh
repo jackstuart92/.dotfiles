@@ -2,6 +2,44 @@
 
 set -euo pipefail
 
+# --- Pre-flight Checks for WSL ---
+# Ensures the repository is in the correct location for Stow to work reliably.
+if [[ -n "${WSL_DISTRO_NAME-}" ]] && [[ "$(pwd)" == /mnt/* ]]; then
+    echo "⚠️ The dotfiles repository is currently on the Windows filesystem (/mnt/...)."
+    echo "Stow works best when the repository is inside the WSL filesystem."
+    echo
+    
+    read -rp "Do you want to move the repo to your WSL home (~/.dotfiles)? (Y/n) " choice
+    if [[ "$choice" =~ ^[Nn]$ ]]; then
+        echo "Aborting. Please re-clone the repository into your WSL home directory (e.g., /home/your_user/.dotfiles)."
+        exit 1
+    else
+        # Move the repo and create a symlink back to the original location
+        local new_path="$HOME/.dotfiles"
+        if [ -d "$new_path" ]; then
+            echo "Error: A directory already exists at $new_path."
+            exit 1
+        fi
+        
+        # Get the absolute path of the current directory
+        local current_path
+        current_path=$(pwd)
+        
+        # Move the directory
+        echo "Moving repository to $new_path..."
+        mv -T "$current_path" "$new_path"
+        
+        # Create a symlink from the new location back to the old one
+        echo "Creating a symlink from $new_path to $current_path..."
+        ln -s "$new_path" "$current_path"
+        
+        echo "✅ Repository moved. Please 'cd' into the new directory and re-run this script:"
+        echo "cd $new_path && ./install.sh"
+        exit 0
+    fi
+fi
+
+
 # Function to detect the operating system
 detect_os() {
     case "$(uname -s)" in

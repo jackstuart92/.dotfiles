@@ -100,6 +100,9 @@ fi
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
+# Add standard local bin directory for manually installed tools
+export PATH=$PATH:/usr/local/bin
+
 # Oh My Posh - A theme engine for any shell.
 # https://ohmyposh.dev
 export OMP_THEME="$HOME/.dotfiles/themes/jandedobbeleer.omp.json"

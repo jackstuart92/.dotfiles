@@ -99,6 +99,7 @@ BREW_PACKAGES=(
     "wget"
     "visual-studio-code"
     "neovim"
+    "zsh"
 )
 
 APT_PACKAGES=(
@@ -130,6 +131,7 @@ APT_PACKAGES=(
     "libffi-dev"
     "liblzma-dev"
     "neovim"
+    "zsh"
 )
 
 
@@ -143,6 +145,25 @@ install_macos() {
     brew update
     echo "Installing packages..."
     brew install "${BREW_PACKAGES[@]}"
+
+    # Install Oh My Zsh non-interactively
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        echo "Installing Oh My Zsh..."
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    fi
+
+    # Set Zsh as the default shell
+    local zsh_path
+    zsh_path=$(which zsh)
+    if [ -n "$zsh_path" ] && [ "$SHELL" != "$zsh_path" ]; then
+        echo "Setting Zsh as the default shell. You may be prompted for your password."
+        if chsh -s "$zsh_path"; then
+            echo "✅ Default shell changed to Zsh. Please log out and back in for the change to take effect."
+        else
+            echo "⚠️  Failed to change default shell. Please run 'chsh -s $(which zsh)' manually."
+        fi
+    fi
+
     echo "macOS setup complete."
 }
 
@@ -164,9 +185,49 @@ install_ubuntu() {
     fi
     
     # Special handling for pyenv
-    if ! command -v pyenv &> /dev/null; then
+    # We check for the directory first, as a failed install can leave it behind
+    # without the `pyenv` command being available in the PATH.
+    if [ -d "$HOME/.pyenv" ]; then
+        # If the command exists in the current shell, we assume it's correctly installed.
+        # Note: This might not be true if the shell hasn't been reloaded, but it's a safe check.
+        if command -v pyenv &>/dev/null; then
+            echo "✅ pyenv is already installed and available."
+        else
+            # The directory exists, but the command doesn't. This indicates a broken/partial install.
+            echo "⚠️  Existing but incomplete pyenv installation found at ~/.pyenv."
+            read -rp "Do you want to remove it and reinstall? (y/N) " choice
+            if [[ "$choice" =~ ^[Yy]$ ]]; then
+                echo "Removing existing ~/.pyenv directory..."
+                rm -rf "$HOME/.pyenv"
+                echo "Installing pyenv..."
+                curl https://pyenv.run | bash
+            else
+                echo "Skipping pyenv installation. You may need to manually configure your shell to use it."
+            fi
+        fi
+    else
+        # The directory doesn't exist, so we should install it.
         echo "Installing pyenv..."
         curl https://pyenv.run | bash
+    fi
+
+    # Install Oh My Zsh non-interactively
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        echo "Installing Oh My Zsh..."
+        # We need zsh installed first, which is in the APT_PACKAGES list
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    fi
+
+    # Set Zsh as the default shell
+    local zsh_path
+    zsh_path=$(which zsh)
+    if [ -n "$zsh_path" ] && [ "$SHELL" != "$zsh_path" ]; then
+        echo "Setting Zsh as the default shell. You may be prompted for your password."
+        if chsh -s "$zsh_path"; then
+            echo "✅ Default shell changed to Zsh. Please log out and back in for the change to take effect."
+        else
+            echo "⚠️  Failed to change default shell. Please run 'chsh -s $(which zsh)' manually."
+        fi
     fi
 
     echo "Ubuntu setup complete."
@@ -233,11 +294,104 @@ setup_windows_path() {
 }
 
 
+# --- Configure IDE Terminals ---
+# Sets the default integrated terminal to Zsh for VS Code and Cursor.
+configure_ide_terminals() {
+    echo "Configuring default terminals for VS Code and Cursor..."
+
+    local zsh_path
+    zsh_path=$(which zsh)
+
+    if [ -z "$zsh_path" ]; then
+        echo "⚠️  zsh not found in PATH, skipping IDE terminal configuration."
+        return
+    fi
+
+    local os
+    os=$(detect_os)
+
+    local default_profile_key=""
+    local profiles_key=""
+    local ide_settings_paths=()
+
+    if [ "$os" = "macos" ]; then
+        default_profile_key="terminal.integrated.defaultProfile.osx"
+        profiles_key="terminal.integrated.profiles.osx"
+        local vscode_mac_path="$HOME/Library/Application Support/Code/User/settings.json"
+        local cursor_mac_path="$HOME/Library/Application Support/Cursor/User/settings.json"
+        if [ -f "$vscode_mac_path" ]; then ide_settings_paths+=("$vscode_mac_path"); fi
+        if [ -f "$cursor_mac_path" ]; then ide_settings_paths+=("$cursor_mac_path"); fi
+
+    elif [ "$os" = "ubuntu" ]; then
+        default_profile_key="terminal.integrated.defaultProfile.linux"
+        profiles_key="terminal.integrated.profiles.linux"
+        # For WSL, VS Code Server settings are used
+        local vscode_wsl_path="$HOME/.vscode-server/data/Machine/settings.json"
+        local cursor_wsl_path="$HOME/.cursor-server/data/Machine/settings.json" # Assumed path
+        if [ -f "$vscode_wsl_path" ]; then ide_settings_paths+=("$vscode_wsl_path"); fi
+        if [ -f "$cursor_wsl_path" ]; then ide_settings_paths+=("$cursor_wsl_path"); fi
+    else
+        echo "Unsupported OS for IDE terminal configuration. Skipping."
+        return
+    fi
+
+    if [ ${#ide_settings_paths[@]} -eq 0 ]; then
+        echo "No VS Code or Cursor settings files found to configure."
+        return
+    fi
+
+    for settings_path in "${ide_settings_paths[@]}"; do
+        echo "Updating settings in: $settings_path"
+        
+        local settings_dir
+        settings_dir=$(dirname "$settings_path")
+        if [ ! -d "$settings_dir" ]; then
+            mkdir -p "$settings_dir"
+            echo "Created directory $settings_dir"
+        fi
+        
+        # Ensure the file is valid JSON, creating it if it doesn't exist or is empty
+        if ! jq -e . "$settings_path" >/dev/null 2>&1; then
+            echo "{}" > "$settings_path"
+            echo "Created or repaired empty/invalid settings file."
+        fi
+
+        # Use jq to idempotently add the zsh profile and set it as the default
+        local temp_file
+        temp_file=$(mktemp)
+        jq \
+            --arg zsh_path "$zsh_path" \
+            --arg default_profile_key "$default_profile_key" \
+            --arg profiles_key "$profiles_key" \
+            '
+            .[$profiles_key].zsh = {"path": $zsh_path} |
+            .[$default_profile_key] = "zsh"
+            ' \
+            "$settings_path" > "$temp_file" && mv "$temp_file" "$settings_path"
+        
+        echo "✅ Configured $settings_path to use zsh as the default terminal."
+    done
+}
+
+
 # Main execution
 main() {
     pre_flight_checks
-    detect_os
+    
+    local os
+    os=$(detect_os)
+
+    if [ "$os" = "macos" ]; then
+        install_macos
+    elif [ "$os" = "ubuntu" ]; then
+        install_ubuntu
+    else
+        echo "Unsupported OS: $os. Cannot install software."
+        exit 1
+    fi
+
     setup_windows_path
+    configure_ide_terminals
 }
 
 main "$@"

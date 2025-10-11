@@ -95,3 +95,7 @@ eval "$(pyenv init -)"
 if [ -f ~/.env ]; then
     source ~/.env
 fi
+
+# Go
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin

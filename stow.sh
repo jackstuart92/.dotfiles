@@ -38,8 +38,8 @@ STOW_PACKAGES=(
     npm
     pip
     docker
-    go
     copilot
+    ghostty
 )
 
 # Stow dotfiles to the correct home directory.

@@ -80,7 +80,15 @@ These steps should be run from your terminal on macOS or inside your Ubuntu envi
     ./stow.sh
     ```
 
-5.  **(Optional) Set up automatic syncing:**
+5.  **(Optional, macOS only) Apply system tweaks:**
+
+    Applies opinionated Finder, Dock, keyboard, and screenshot defaults. Safe to re-run.
+
+    ```bash
+    ./macos-defaults.sh
+    ```
+
+6.  **(Optional) Set up automatic syncing:**
 
     If you want to keep your dotfiles automatically updated, run the sync script. This will add a cron job to pull the latest changes from the repository every hour.
 
@@ -95,10 +103,22 @@ These steps should be run from your terminal on macOS or inside your Ubuntu envi
 *   `configure.sh`: An interactive script to set up your local configurations.
 *   `stow.sh`: Symlinks the dotfiles using `stow`.
 *   `sync.sh`: Sets up a cron job to sync the repository.
+*   `macos-defaults.sh`: (macOS only, opt-in) Applies Finder/Dock/keyboard tweaks.
 *   `git/`: Contains `.gitconfig`, `.gitignore_global`, and templates.
 *   `zsh/`: Contains `.zshrc`.
 *   `shell/`: Contains `.bashrc`, `.bash_profile`, and `.env.template`.
-*   `npm/`, `pip/`, `docker/`, `go/`: Configuration for private registries.
+*   `ghostty/`: Ghostty terminal configuration.
+*   `npm/`, `pip/`, `docker/`: Configuration for private registries.
 *   `copilot/`: Contains `.copilot-instructions`.
-*   `nvim/`: Contains `.vimrc`.
-*   `scripts/`: Utility scripts.
+
+## 📱 iOS / Flutter notes (macOS)
+
+The installer sets up everything needed for iOS Flutter development on macOS:
+
+*   **Xcode Command Line Tools** are installed automatically (a GUI dialog appears on first run).
+*   **Xcode (full IDE)** is prompted via `mas install 497799835` — it's a ~15GB download, so it's opt-in.
+*   **CocoaPods**, **ios-deploy**, and **Flutter** are installed via Homebrew.
+*   On Apple Silicon, **Rosetta 2** is installed (some CocoaPods gems still need it).
+*   `flutter doctor` is run at the end so you can see any remaining manual steps (simulator, signing certificates).
+
+After install, open Xcode once to accept its license and let it install additional components, then run `flutter doctor` again to verify.

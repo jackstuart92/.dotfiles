@@ -91,6 +91,13 @@ export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
+# --- Modern CLI tool integrations (guarded) ---
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+command -v bat >/dev/null && alias cat='bat --paging=never'
+command -v eza >/dev/null && alias ls='eza' && alias ll='eza -lah --git'
+command -v lazygit >/dev/null && alias lg='lazygit'
+
 # Source local env file if it exists
 if [ -f ~/.env ]; then
     source ~/.env

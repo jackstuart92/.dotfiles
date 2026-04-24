@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Pre-commit hook: scan staged files for secrets before they land in the repo.
+
+set -euo pipefail
+
+if command -v gitleaks >/dev/null 2>&1; then
+    gitleaks protect --staged --no-banner
+else
+    echo "⚠️  gitleaks not found — falling back to basic secret scan."
+
+    # Patterns that should never appear in committed files
+    PATTERNS=(
+        # Base64 Docker auth tokens (non-placeholder)
+        '"auth":[[:space:]]*"[A-Za-z0-9+/]{20,}={0,2}"'
+        # Hardcoded passwords / tokens (common key names with non-placeholder values)
+        '(password|passwd|secret|token|api_key)[[:space:]]*=[[:space:]]*"[^"${}]{8,}"'
+        # Private key headers
+        '-----BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY'
+        # AWS keys
+        'AKIA[0-9A-Z]{16}'
+    )
+
+    STAGED=$(git diff --cached --name-only)
+    FOUND=0
+
+    for pattern in "${PATTERNS[@]}"; do
+        matches=$(echo "$STAGED" | xargs -I{} git show ":{}") 2>/dev/null || true
+        if echo "$matches" | grep -Eq "$pattern"; then
+            echo "❌ Possible secret detected matching pattern: $pattern"
+            FOUND=1
+        fi
+    done
+
+    if [ "$FOUND" -eq 1 ]; then
+        echo "Commit blocked. Review the above matches and remove any secrets."
+        echo "If this is a false positive, you can skip with: git commit --no-verify"
+        exit 1
+    fi
+fi

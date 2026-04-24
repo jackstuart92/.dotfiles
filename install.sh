@@ -80,6 +80,7 @@ BREW_PACKAGES=(
     "tldr"
     "shellcheck"
     "starship"
+    "gitleaks"
 )
 
 BREW_CASKS=(
@@ -153,7 +154,7 @@ brew_install() {
         echo "  [ok]   $pkg"
     else
         echo "  [FAIL] $pkg — will retry at end"
-        BREW_FAILED+=("$pkg")
+        BREW_FAILED_FORMULAE+=("$pkg")
     fi
 }
 
@@ -166,7 +167,7 @@ brew_cask_install() {
         echo "  [ok]   $cask"
     else
         echo "  [FAIL] $cask — will retry at end"
-        BREW_FAILED+=("$cask")
+        BREW_FAILED_CASKS+=("$cask")
     fi
 }
 
@@ -228,7 +229,8 @@ install_macos() {
     brew tap homebrew/cask-fonts 2>/dev/null || true
     brew tap azure/bicep 2>/dev/null || true
 
-    BREW_FAILED=()
+    BREW_FAILED_FORMULAE=()
+    BREW_FAILED_CASKS=()
 
     echo "Installing formulae..."
     for pkg in "${BREW_PACKAGES[@]}"; do
@@ -240,13 +242,15 @@ install_macos() {
         brew_cask_install "$cask"
     done
 
-    if [ ${#BREW_FAILED[@]} -gt 0 ]; then
+    if [ ${#BREW_FAILED_FORMULAE[@]} -gt 0 ] || [ ${#BREW_FAILED_CASKS[@]} -gt 0 ]; then
         echo ""
         echo "⚠️  The following packages failed to install and need attention:"
-        for pkg in "${BREW_FAILED[@]}"; do
-            echo "    - $pkg"
+        for pkg in "${BREW_FAILED_FORMULAE[@]}"; do
+            echo "    brew install $pkg"
         done
-        echo "   You can retry them individually with: brew install <package>"
+        for cask in "${BREW_FAILED_CASKS[@]}"; do
+            echo "    brew install --cask $cask"
+        done
         echo ""
     fi
 

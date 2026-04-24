@@ -1,10 +1,8 @@
-[user]
-    name = 
-    email = 
 [core]
     editor = nvim
     excludesfile = ~/.gitignore_global
     pager = delta
+    hooksPath = hooks
 [interactive]
     diffFilter = delta --color-only
 [delta]
@@ -15,8 +13,6 @@
     conflictstyle = zdiff3
 [init]
     defaultBranch = main
-[github]
-    user = 
 [includeIf "gitdir:~/work/"]
     path = ~/.gitconfig.work
 [include]

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/jack/.dotfiles status)",
+      "Bash(git -C /Users/jack/.dotfiles ls-files docker/ npm/ pip/)"
+    ]
+  }
+}

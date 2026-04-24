@@ -18,11 +18,6 @@ configure_git() {
 
     local gitconfig_local="git/.gitconfig.local"
 
-    # Create local gitconfig if it doesn't exist
-    if [ ! -f "$gitconfig_local" ]; then
-        cp git/.gitconfig.template "$gitconfig_local"
-    fi
-
     # Update the local gitconfig file
     cat > "$gitconfig_local" << EOL
 [user]
@@ -98,9 +93,12 @@ configure_npm() {
     read -rp "Enter the scope for this registry (e.g., @my-scope): " npm_scope
     read -rp "Enter your NPM auth token (will be stored in shell/env.template): " npm_token
 
+    # Initialise .npmrc from template if it doesn't exist yet
+    [ ! -f npm/.npmrc ] && cp npm/npmrc.template npm/.npmrc
+
     # Add registry config to .npmrc
     echo "$npm_scope:registry=$npm_registry" >> npm/.npmrc
-    
+
     # Clean up URL for token config (remove https://)
     local cleaned_url
     cleaned_url=$(echo "$npm_registry" | sed 's|https?://||')
@@ -117,6 +115,9 @@ configure_npm() {
 configure_pip() {
     echo "--- Pip Private Registry ---"
     read -rp "Enter your private Pip registry index URL: " pip_registry
+
+    # Initialise pip.conf from template if it doesn't exist yet
+    [ ! -f pip/.pip/pip.conf ] && cp pip/.pip/pip.conf.template pip/.pip/pip.conf
 
     sed -i.bak "s|; extra-index-url = .*|extra-index-url = $pip_registry|" pip/.pip/pip.conf && rm pip/.pip/pip.conf.bak
 
@@ -139,6 +140,9 @@ configure_docker() {
 
     local auth_token
     auth_token=$(echo -n "$docker_user:$docker_pass" | base64)
+
+    # Initialise config.json from template if it doesn't exist yet
+    [ ! -f docker/.docker/config.json ] && cp docker/.docker/config.json.template docker/.docker/config.json
 
     # Use jq to update the config.json
     jq --arg registry "$docker_registry" --arg token "$auth_token" \
@@ -169,11 +173,7 @@ configure_go() {
 
         if [[ -n "$go_git_host" ]] && [[ -n "$go_token" ]]; then
             local gitconfig_local="git/.gitconfig.local"
-            # Create local gitconfig if it doesn't exist, to be safe
-            if [ ! -f "$gitconfig_local" ]; then
-                cp git/.gitconfig.template "$gitconfig_local"
-            fi
-            
+
             # Append the url."insteadOf" config to the local gitconfig
             {
                 echo ""
@@ -216,7 +216,14 @@ main() {
     [[ "$choice" =~ ^[Yy]$ ]] && configure_go
 
     echo "🎉 Configuration complete!"
-    echo "Remember to run './stow.sh' to apply your new configurations."
+    echo
+    read -rp "Run './stow.sh' now to apply your configurations? (y/n): " choice
+    if [[ "$choice" =~ ^[Yy]$ ]]; then
+        SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+        bash "$SCRIPT_DIR/stow.sh"
+    else
+        echo "Remember to run './stow.sh' to apply your new configurations."
+    fi
 }
 
 main "$@"

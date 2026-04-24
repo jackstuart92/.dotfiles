@@ -35,6 +35,11 @@ defaults write com.apple.dock autohide-delay -float 0
 defaults write com.apple.dock tilesize -int 42
 defaults write com.apple.dock show-recents -bool false
 
+# --- Trackpad ---
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
+defaults write com.apple.AppleMultitouchTrackpad TrackpadRightClick -bool true
+defaults -currentHost write NSGlobalDomain com.apple.trackpad.enableSecondaryClick -bool true
+
 # --- Network / USB cruft ---
 defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true

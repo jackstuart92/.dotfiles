@@ -40,6 +40,8 @@ STOW_PACKAGES=(
     docker
     copilot
     ghostty
+    starship
+    hushlogin
 )
 
 # Stow dotfiles to the correct home directory.

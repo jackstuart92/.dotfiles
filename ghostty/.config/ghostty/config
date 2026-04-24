@@ -14,7 +14,7 @@ cursor-style = block
 cursor-style-blink = true
 
 shell-integration = zsh
-shell-integration-features = cursor,sudo,title
+shell-integration-features = cursor,sudo
 
 macos-option-as-alt = true
 macos-titlebar-style = tabs

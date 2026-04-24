@@ -1,6 +1,9 @@
-# Local and user-specific configurations
+# Local and user-specific configurations (populated by configure.sh, never commit)
 git/.gitconfig.local
 shell/.env
+docker/.docker/config.json
+npm/.npmrc
+pip/.pip/pip.conf
 
 # macOS files
 .DS_Store

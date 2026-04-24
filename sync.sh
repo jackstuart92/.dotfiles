@@ -17,10 +17,10 @@ detect_os() {
     esac
 }
 
-# Add a cron job to sync the dotfiles repository
+# Add a cron job to sync the dotfiles repository and restow
 add_cron_job() {
-    local cron_job="0 * * * * cd $HOME/.dotfiles && git pull --quiet"
-    (crontab -l 2>/dev/null | grep -Fv "$cron_job"; echo "$cron_job") | crontab -
+    local cron_job="0 * * * * cd $HOME/.dotfiles && git pull --quiet && bash $HOME/.dotfiles/stow.sh >/dev/null 2>&1"
+    (crontab -l 2>/dev/null | grep -Fv "cd $HOME/.dotfiles && git pull"; echo "$cron_job") | crontab -
     echo "Cron job added to sync dotfiles every hour."
 }
 

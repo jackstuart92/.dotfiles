@@ -1,3 +1,4 @@
-; E.g.
+; Private registry config — populated by configure.sh
+; e.g.
 ; @my-scope:registry=https://my-private-registry.com
 ; //my-private-registry.com/:_authToken=${NPM_TOKEN}
